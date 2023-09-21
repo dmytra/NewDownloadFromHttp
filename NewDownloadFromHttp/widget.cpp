@@ -1,5 +1,7 @@
 #include "widget.h"
 #include "ui_widget.h"
+#include <QDir>
+
 
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
@@ -8,6 +10,7 @@ Widget::Widget(QWidget *parent) :
     ui->setupUi(this);
 
     manager = new QNetworkAccessManager();
+
     connect(manager, &QNetworkAccessManager::finished, this, &Widget::onResult);
 
     connect(ui->pushButton, &QPushButton::clicked, this, &Widget::getData);
@@ -20,20 +23,21 @@ Widget::~Widget()
     delete ui;
 }
 
-
 void Widget::onResult(QNetworkReply *reply)
 {
     if(reply->error()){
             qDebug() << "ERROR";
             qDebug() << reply->errorString();
     } else {
-    corrTime = QTime::currentTime().toString("hh_mm_ss_zzz");
+            QDir aa;
+            aa.setPath(QCoreApplication::applicationDirPath());
+            corrTime = QTime::currentTime().toString("hh_mm_ss_zzz");
             QFile *file = new QFile("file"+corrTime+".xml");
             if(file->open(QFile::WriteOnly)){
-                file->write(reply->readAll());  // ... и записываем всю информацию со страницы в файл
-                file->close();                  // закрываем файл
-                qDebug() << "Downloading is completed" << corrTime ;
-                emit onReady(); // Посылаем сигнал о завершении получения файла
+                file->write(reply->readAll());
+                file->close();
+                qDebug() << "Downloading is completed " << corrTime << " " << QCoreApplication::applicationDirPath();
+                emit onReady();
             }
     }
 }
